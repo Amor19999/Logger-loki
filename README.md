@@ -38,14 +38,14 @@ pip install -e .
 ```
 
 або через setup.py:
-```
+```bash
 python setup.py install
 ```
 
 🐳 Docker
 1. Побудова Docker-образу:
 
-```
+```bash
 docker build -t factum-logger .
 ```
 
@@ -59,7 +59,7 @@ ENV=stage
 
 3. Запуск:
 
-```
+```bash
 docker run -p 8000:8000 --env-file .env factum-logger
 ```
 
