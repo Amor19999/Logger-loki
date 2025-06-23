@@ -46,7 +46,7 @@ python setup.py install
 1. Побудова Docker-образу:
 
 ```bash
-docker build -t factum-logger .
+docker build -t logger .
 ```
 
 2. Створіть .env файл:
