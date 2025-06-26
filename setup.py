@@ -8,7 +8,8 @@ setup(
         "fastapi",
         "uvicorn",
         "python-dotenv",
-        "python-logging-loki    ",
+        "python-logging-loki",
+        "logging-loki",
         "pydantic"
     ],
     author="Roman Mishchenko",
