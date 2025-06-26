@@ -2,7 +2,7 @@
 from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
-from .core import get_logger, log_structured
+from core import get_logger, log_structured
 from datetime import datetime
 
 app = FastAPI()
