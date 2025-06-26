@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 
 RUN pip install --upgrade pip && \
-    pip install fastapi uvicorn python-dotenv pydantic
+    pip install fastapi uvicorn python-dotenv pydantic python-logging-loki
 
 EXPOSE 8000
 
