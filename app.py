@@ -1,14 +1,22 @@
 from fastapi import FastAPI
 from api import router as api_router
 from services.db import init_db
-import asyncio
+from contextlib import asynccontextmanager
+import os
+import time
 
-app = FastAPI()
-app.include_router(api_router, prefix="/api/v1")
-
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Set UTC timezone for application
+    os.environ['TZ'] = 'UTC'
+    time.tzset()
+    
+    # Initialize database
     await init_db()
+    yield
+
+app = FastAPI(lifespan=lifespan)
+app.include_router(api_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn

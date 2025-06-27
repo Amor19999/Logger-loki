@@ -1,14 +1,12 @@
-# /api_logger.py
-from fastapi import FastAPI, Request, APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
 from core import get_logger, log_structured
 from datetime import datetime
-
-from .models import PageviewRequest, AnalyticsRequest
+from models import PageviewRequest
 from services.analytics_service import save_pageview, get_pageviews_analytics
 
-app = FastAPI()
+router = APIRouter()
 
 class LogStackFrame(BaseModel):
     func: Optional[str]
@@ -61,15 +59,16 @@ async def receive_log(payload: LogPayload):
 
     return {"status": "ok"}
 
-# Новий ендпоінт для відстеження переглядів
 @router.post("/track/pageview")
 async def track_pageview(request: PageviewRequest):
-    await save_pageview(request.dict())
-    return {"status": "success"}
+    try:
+        await save_pageview(request.dict())
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-# Ендпоінт для отримання аналітики
 @router.get("/analytics/pageviews")
-async def get_pageviews_analytics(
+async def get_pageviews_analytics_endpoint(
     start: datetime,
     end: datetime,
     group_by: str = "day"
@@ -85,4 +84,4 @@ async def get_pageviews_analytics(
             }]
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))

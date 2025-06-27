@@ -1,9 +1,10 @@
+import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import Column, Integer, String, DateTime
-import os
+from sqlalchemy import Column, Integer, String, TIMESTAMP, func
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql+asyncpg://user:password@postgres:5432/analytics')
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 AsyncSessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
@@ -14,7 +15,7 @@ class Pageview(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, index=True)
     page_url = Column(String)
-    timestamp = Column(DateTime, index=True)
+    timestamp = Column(TIMESTAMP(timezone=True), default=func.now(), index=True)
     session_id = Column(String, nullable=True)
     user_agent = Column(String, nullable=True)
     referrer = Column(String, nullable=True)
