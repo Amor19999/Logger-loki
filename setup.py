@@ -9,7 +9,6 @@ setup(
         "uvicorn",
         "python-dotenv",
         "python-logging-loki",
-        "logging-loki",
         "pydantic"
     ],
     author="Roman Mishchenko",

@@ -1,9 +1,12 @@
 # /api_logger.py
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
 from core import get_logger, log_structured
 from datetime import datetime
+
+from .models import PageviewRequest, AnalyticsRequest
+from services.analytics_service import save_pageview, get_pageviews_analytics
 
 app = FastAPI()
 
@@ -28,7 +31,7 @@ class LogPayload(BaseModel):
     severity: Optional[str]
     time: Optional[str] = Field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
 
-@app.post("/log")
+@router.post("/log")
 async def receive_log(payload: LogPayload):
     logger = get_logger(extra_tags={
         "service": payload.service or "frontend",
@@ -57,3 +60,29 @@ async def receive_log(payload: LogPayload):
     )
 
     return {"status": "ok"}
+
+# Новий ендпоінт для відстеження переглядів
+@router.post("/track/pageview")
+async def track_pageview(request: PageviewRequest):
+    await save_pageview(request.dict())
+    return {"status": "success"}
+
+# Ендпоінт для отримання аналітики
+@router.get("/analytics/pageviews")
+async def get_pageviews_analytics(
+    start: datetime,
+    end: datetime,
+    group_by: str = "day"
+):
+    try:
+        data = await get_pageviews_analytics(start, end, group_by)
+        return {
+            "dateRange": {"startTime": start.isoformat(), "endTime": end.isoformat()},
+            "labels": data['labels'],
+            "datasets": [{
+                "data": data['values'],
+                "totalValue": data['total']
+            }]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
