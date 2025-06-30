@@ -1,23 +1,69 @@
 from aiohttp_boilerplate.logging import gcp_logger
+import uuid
+import json
+import aiohttp
+from datetime import datetime
 
 async def create_pool_fix(conf, loop):
     return LokiStorage(conf["database"], gcp_logger.GCPLogger("loki_storage"))
 
-
 class LokiException(Exception):
     pass
 
-
 class LokiStorage(object):
-
     def __init__(self, url, log=None):
         self.url = url
         self.query = ''
         self.params = {}
         self.log = log
+        if self.log:
+            self.log.debug(f"Initialized LokiStorage with URL: {url}")
 
     async def close(self):
         pass
+
+    async def _send_to_loki(self, data: dict) -> bool:
+        """Внутрішній метод для відправки даних у Loki"""
+        # Кастомний серіалізатор для datetime
+        def json_serializer(obj):
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            raise TypeError(f"Type {type(obj)} not serializable")
+        
+        # Формуємо payload для Loki
+        payload = {
+            "streams": [{
+                "stream": {"service": "analytics-api"},
+                "values": [[
+                    str(int(datetime.utcnow().timestamp() * 1e9)),  # наносекунди
+                    json.dumps(data, default=json_serializer)
+                ]]
+            }]
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+            "X-Scope-OrgID": "fake"  # Обов'язковий заголовок для Loki
+        }
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.url,
+                    json=payload,
+                    headers=headers
+                ) as response:
+                    if response.status == 204:
+                        return True
+                    err = await response.text()
+                    if self.log:
+                        self.log.error('Loki error', f"Status: {response.status}, Error: {err}")
+                    return False
+        except Exception as e:
+            if self.log:
+                self.log.error('Loki connection failed', str(e))
+            return False
+
 
     async def select(self,
         fields='*', where='', order='', limit='', offset=None, params=None, many=False
@@ -52,20 +98,21 @@ class LokiStorage(object):
         # result = await stmt.fetch(*self.params.values())
         return result
 
+
     async def insert(self, data: dict) -> dict:
-        self.query = 'insert values({}) {}'.format(
-            ','.join(data.keys()),
-            ','.join(['$%d' % (x + 1) for x in range(0, data.__len__())]),
-        )
-        self.log.debug('sql query', f'{self.query}', extra={"sql_type": "insert"})
+        """Зберігає дані у Loki та повертає унікальний ID"""
+        # Генеруємо унікальний ID
+        insert_id = str(uuid.uuid4())
+        data_with_id = {**data, "id": insert_id}
 
-        print("save data to loki")
-        result = {"id": "INSERT 1"}
-        # ToDo
-        # Save data to loki
-        # result = await self.conn.fetchrow(self.query, *data.values())
+        if self.log:
+            self.log.debug(f"Inserting data to Loki: {data_with_id}")
 
-        return result
+        # Відправляємо дані до Loki
+        if await self._send_to_loki(data_with_id):
+            return {"id": insert_id}
+        else:
+            raise LokiException("Failed to insert data to Loki")
 
     async def update(self, where: str, params: dict, data: dict) -> int:
         raise LokiException('Not supported')

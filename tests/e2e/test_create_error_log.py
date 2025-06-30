@@ -42,12 +42,13 @@ class TestCreateLog(E2ETestCase):
 
         assert status == 201, print(data)
         assert "id" in data, print(data)
+        assert data["id"] == "123"
 
         status, data = await self.request(
             self.url_get.format(id=data["id"]),
             "GET",
         )
-        assert data["XXX"] == "YYYY", print(data)
+        assert data["message"] == "Task-14", print(data)
 
     async def no_test_create_log_invalid_data(self):
         """
