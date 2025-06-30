@@ -53,17 +53,17 @@ class LokiStorage(object):
                     json=payload,
                     headers=headers
                 ) as response:
-                    if response.status == 204:
+                    if response.status in (200, 201, 204):
                         return True
                     err = await response.text()
                     if self.log:
                         self.log.error('Loki error', f"Status: {response.status}, Error: {err}")
-                    return False
+                    # Відразу після логування кидаємо exception з текстом помилки
+                    raise LokiException(f"Loki error: Status {response.status}, Error: {err}")
         except Exception as e:
             if self.log:
                 self.log.error('Loki connection failed', str(e))
-            return False
-
+            raise  # Прокидуємо далі для явного фейлу
 
     async def select(self,
         fields='*', where='', order='', limit='', offset=None, params=None, many=False

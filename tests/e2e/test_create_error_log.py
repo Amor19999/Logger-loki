@@ -1,4 +1,7 @@
 from aiohttp_boilerplate.test_utils import E2ETestCase
+from datetime import datetime, timezone
+import uuid
+
 
 
 class TestCreateLog(E2ETestCase):
@@ -17,11 +20,12 @@ class TestCreateLog(E2ETestCase):
         assert status == 200
 
     async def test_create_log(self):
+        current_time = datetime.now(timezone.utc).isoformat()
         status, data = await self.request(
             self.url,
             "POST",
             data={
-                "time": "2025-06-30T17:01:23Z",
+                "time": current_time,
                 "message": "Task-14",
                 "component": "analytics-api",
                 "serviceContext": {
@@ -42,13 +46,19 @@ class TestCreateLog(E2ETestCase):
 
         assert status == 201, print(data)
         assert "id" in data, print(data)
-        assert data["id"] == "123"
+
+        # Перевірка валідності UUID
+        try:
+            uuid.UUID(data["id"])
+        except ValueError:
+            assert False, f"Invalid UUID format: {data['id']}"
 
         status, data = await self.request(
             self.url_get.format(id=data["id"]),
             "GET",
         )
         assert data["message"] == "Task-14", print(data)
+
 
     async def no_test_create_log_invalid_data(self):
         """
