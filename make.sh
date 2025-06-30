@@ -67,7 +67,7 @@ install)
   ;;
 
 lint)
-  ruff check app/ tests/ $2 $3
+  ruff check --fix app/ tests/ $2 $3
   ;;
 
 test)

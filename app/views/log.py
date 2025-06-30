@@ -25,13 +25,14 @@ class LogCreate(CreateView):
     #     return models.Offer
 
     def get_schema(self):
-        return schemas.LogDetail
+        return schemas.LogCreate
 
     async def before_get(self):
         self.where = "t0.status={published} and entity_id!=''"
 
-    async def get_data(self, objects):
-        data = await super().get_data(objects)
-        data = self.schema().dump(obj=data, many=True)
+    async def perform_create(self, data: dict):
+        res = await self.request.app.db_pool.insert(data)
+        return res
 
-        return data
+    async def get_data(self, obj) -> dict:
+        return obj

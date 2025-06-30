@@ -5,8 +5,8 @@ from app import schemas
 
 
 class PageViewList(ListView):
-    # def get_model(self):
-    #     return models.Offer
+    def get_model(self):
+        return {}
 
     def get_schema(self):
         return schemas.PageViewList
@@ -21,8 +21,8 @@ class PageViewList(ListView):
         return data
 
 class PageViewCreate(CreateView):
-    # def get_model(self):
-    #     return models.Offer
+    def get_model(self):
+        return {}
 
     def get_schema(self):
         return schemas.LogDetail
