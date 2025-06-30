@@ -47,7 +47,7 @@ class TestCreateLog(E2ETestCase):
             self.url_get.format(id=data["id"]),
             "GET",
         )
-        assert data["XXX"] == "YYYY", print(data)
+        assert data["message"] == "Task-14", print(data)
 
     async def no_test_create_log_invalid_data(self):
         """
