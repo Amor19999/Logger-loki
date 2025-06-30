@@ -1,0 +1,52 @@
+from aiohttp_boilerplate.test_utils import E2ETestCase
+
+
+class TestCreateLog(E2ETestCase):
+    url = '/v1.0/public/log'
+    url_get = '/v1.0/public/log/{id}'
+
+    fixtures = {}
+
+    # Make sure OPTIONS request working fine
+    async def test_options(self):
+        status, data = await self.request(
+            self.url,
+            'OPTIONS',
+        )
+
+        assert status == 200
+
+    async def test_create_log(self):
+
+        status, data = await self.request(
+            self.url,
+            'POST',
+            data={
+            }
+        )
+
+        assert status == 200, print(data)
+        assert 'id' in data, print(data)
+
+        status, data = await self.request(
+            self.url_get.format(id=data['id']),
+            'GET',
+        )
+        assert data['XXX'] == 'YYYY', print(data)
+
+    async def test_create_log_invalid_data(self):
+        """
+        тут ми навмисно відправляємо не вірні данні
+        щоб подивитись що наша система відасть вірну помилку
+        """
+        status, data = await self.request(
+            self.url,
+            'POST',
+            data={
+                'погані данні 1': "погані данні 1",
+                'погані данні 2': "погані данні 1",
+            }
+        )
+
+        assert status == 400, print(data)
+        assert data == {'погані данні 1': ['Not a valid integer.']}
