@@ -12,24 +12,17 @@ services:
       - postgres
       - redis
 
-  postgres:
-    image: postgres:15
-    container_name: postgres
+  loki:
+    image: LOKI:XXX
+    container_name: loki
     environment:
-      POSTGRES_DB: analytics
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
     expose:
-      - "5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
 
-  redis:
-    image: redis:7-alpine
-    container_name: redis
+  grafana:
+    image: GRAFANA:XXX
+    container_name: grafana
     expose:
-      - "6379"
     restart: always
 
 volumes:
-  pg_data:

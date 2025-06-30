@@ -1,0 +1,9 @@
+mock==5.0.0
+pyre-check==0.0.56
+pytest-aiohttp==1.0.4
+pytest-mock==3.10.0
+pytest==7.2.0
+python-dateutil==2.8.2
+bandit
+ruff
+ipython

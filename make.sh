@@ -17,8 +17,6 @@ lstrip() {
 }
 
 WORK_DIR=$(pwd)
-cd $WORK_DIR
-
 # if company name not set - try to get it from the path
 if [ -z "${COMPANY_NAME}" ]; then
   COMPANY_NAME=$(lstrip $(basename `cd ..; pwd`) "pro")
@@ -33,15 +31,12 @@ else
   SERVICE_NAME="${SERVICE_NAME}"
 fi
 
-if [ -z "${REPOSITORY}" ]; then
-  REPOSITORY=$COMPANY_NAME/$SERVICE_NAME
-else
-  REPOSITORY="${REPOSITORY}"
-fi
+
+REPOSITORY=$COMPANY_NAME/$SERVICE_NAME
 
 self_update() {
   [ ! -d "etc/" ] && mkdir etc;
-  docker pull cr.webdevelop.pro/webdevelop-pro/python-common:latest-dev;
+  docker pull cr.webdevelop.us/webdevelop-pro/python-common:latest-dev;
   docker rm -f makesh;
   docker run --name=makesh cr.webdevelop.us/webdevelop-pro/python-common:latest-dev sh &&
   docker cp makesh:/app/etc/make.sh make.sh;
@@ -57,6 +52,7 @@ install)
   python3 -m venv venv
   . venv/bin/activate
   echo "Installing requirements"
+  pip install --upgrade pip
   pip install -r requirements.txt
   pip install -r requirements-dev.txt
 
@@ -71,7 +67,7 @@ install)
   ;;
 
 lint)
-  ruff check app/ tests/ $2 $3
+  ruff check --fix app/ tests/ $2 $3
   ;;
 
 test)
@@ -96,9 +92,7 @@ self-update)
   ;;
 
 run-dev)
-  export GIT_COMMIT=$(git rev-parse --short HEAD)
-  export BUILD_DATE=$(date "+%Y%m%d")
-  nodemon -u -w app -e py --exec python app/__main__.py
+  nodemon -u -w app -e py --exec python -m app
   ;;
 
 run)
@@ -121,34 +115,17 @@ deploy-dev)
   BRANCH_NAME=`git rev-parse --abbrev-ref HEAD`
   GIT_COMMIT=`git rev-parse --short HEAD`
   echo $BRANCH_NAME, $GIT_COMMIT
-  docker build -t cr.webdevelop.pro/$REPOSITORY:$GIT_COMMIT -t cr.webdevelop.pro/$REPOSITORY:latest-dev --platform=linux/amd64 .
-  # snyk container test cr.webdevelop.us/$REPOSITORY:$GIT_COMMIT
+  docker build -t cr.webdevelop.us/$REPOSITORY:$GIT_COMMIT -t cr.webdevelop.us/$REPOSITORY:latest-dev --platform=linux/amd64 .
+  snyk container test cr.webdevelop.us/$REPOSITORY:$GIT_COMMIT
   if [ $? -ne 0 ]; then
     echo "===================="
     echo "snyk has found a vulnerabilities, please consider choosing alternative image from snyk"
     echo "===================="
   fi
-  docker push cr.webdevelop.pro/$COMPANY_NAME/$SERVICE_NAME:$GIT_COMMIT
-  docker push cr.webdevelop.pro/$COMPANY_NAME/$SERVICE_NAME:latest-dev
-  ssh -p822 root@78.46.85.62 -t "docker pull cr.webdevelop.pro/$COMPANY_NAME/$SERVICE_NAME:latest-dev; systemctl restart wd-analytics-api.service;"
+  docker push cr.webdevelop.us/$REPOSITORY:$GIT_COMMIT
+  docker push cr.webdevelop.us/$REPOSITORY:latest-dev
+  kubectl -n $COMPANY_NAME-dev set image deployment/$SERVICE_NAME $SERVICE_NAME=cr.webdevelop.us/$REPOSITORY:$GIT_COMMIT
   ;;
-
-deploy-stage)
-  GIT_COMMIT=$(git rev-parse --short HEAD)
-  BUILD_DATE=$(date "+%Y%m%d")
-  docker build \
-    --build-arg GIT_COMMIT=$GIT_COMMIT --build-arg BUILD_DATE=$BUILD_DATE --build-arg SERVICE_NAME=$SERVICE_NAME --build-arg REPOSITORY=$REPOSITORY \
-    -t cr.webdevelop.pro/$REPOSITORY:$GIT_COMMIT -t cr.webdevelop.pro/$REPOSITORY:latest-stage \
-    --platform=linux/amd64 .
-  # snyk container test cr.webdevelop.us/$REPOSITORY:$GIT_COMMIT
-  if [ $? -ne 0 ]; then
-    echo "===================="
-    echo "snyk has found a vulnerabilities, please consider choosing alternative image from snyk"
-    echo "===================="
-  fi
-  docker push cr.webdevelop.pro/$COMPANY_NAME/$SERVICE_NAME:$GIT_COMMIT
-  docker push cr.webdevelop.pro/$COMPANY_NAME/$SERVICE_NAME:latest-stage
-  ;;  
 
 help)
   cat make.sh | grep "^[a-z-]*)"
