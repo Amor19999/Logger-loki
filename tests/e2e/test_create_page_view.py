@@ -2,9 +2,9 @@ from aiohttp_boilerplate.test_utils import E2ETestCase
 from datetime import datetime, timezone, timedelta
 import uuid
 
-class TestCreateLog(E2ETestCase):
-    url = "/v1.0/public/log"  # Оновлено URL
-    url_get = "/v1.0/public/log/{id}"
+class TestCreatePageView(E2ETestCase):  # Змінено назву класу
+    url = "/v1.0/public/pageview"  # Оновлено URL для PageView
+    url_get = "/v1.0/public/pageview/{id}"
 
     fixtures = {}
 
@@ -12,27 +12,26 @@ class TestCreateLog(E2ETestCase):
         status, data = await self.request(self.url, "OPTIONS")
         assert status == 200
 
-    async def test_create_log(self):
+    async def test_create_page_view(self):  # Змінено назву методу
         current_time = datetime.now(timezone.utc).isoformat()
         status, data = await self.request(
             self.url,
             "POST",
             data={
                 "time": current_time,
-                "message": "Task-14",
-                "component": "test-logs",
-                "serviceContext": {
-                    "httpRequest": {
-                        "method": "POST",
-                        "url": "/v1.0/public/log",
-                        "userAgent": "Python/3.13 aiohttp/3.11.7",
-                        "referer": "",
-                        "remoteIp": "127.0.0.1",
-                        "protocol": "http",
-                    },
-                    "user": None,
-                    "request_id": "ca789ad6d1984586b04ef867726fd680",
-                    "service_name": "analytics-api",
+                "httpRequest": {  # Змінено дані на HTTP-заголовки
+                    "method": "GET",
+                    "url": "/index.html",
+                    "path": "/index.html",
+                    "host": "www.example.com",
+                    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+                    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                    "acceptLanguage": "en-US,en;q=0.9",
+                    "acceptEncoding": "gzip, deflate, br",
+                    "connection": "keep-alive",
+                    "upgradeInsecureRequests": "1",
+                    "ifModifiedSince": "Tue, 01 Jan 2025 10:00:00 GMT",
+                    "cacheControl": "max-age=0"
                 },
             },
         )
@@ -67,17 +66,17 @@ class TestCreateLog(E2ETestCase):
             )
             return  
 
-        assert "message" in data_get, (
-            f"'message' field missing in GET response. "
+        assert "httpRequest" in data_get, (  # Перевірка наявності HTTP-запиту
+            f"'httpRequest' field missing in GET response. "
             f"Full response: {data_get}"
         )
         
-        assert data_get["message"] == "Task-14", (
-            f"Expected message 'Task-14', got '{data_get['message']}'. "
+        assert data_get["httpRequest"]["url"] == "/index.html", (  # Перевірка конкретного поля
+            f"Expected URL '/index.html', got '{data_get['httpRequest']['url']}'. "
             f"Full response: {data_get}"
         )
 
-    async def test_filter_logs_by_date_range(self):  # Додано фільтр за діапазоном дат
+    async def test_filter_pageviews_by_date_range(self):  # Фільтрація за датою
         date_from = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
         date_to = datetime.now(timezone.utc).isoformat()
 
@@ -88,12 +87,12 @@ class TestCreateLog(E2ETestCase):
 
         assert status == 200, f"Expected 200 OK, got {status}. Response: {data}"
 
-        for log in data:
-            assert date_from <= log["time"] <= date_to, (
-                f"Log time {log['time']} is outside the filter range {date_from} - {date_to}"
+        for pageview in data:
+            assert date_from <= pageview["time"] <= date_to, (
+                f"Pageview time {pageview['time']} is outside filter range {date_from} - {date_to}"
             )
 
-    async def test_filter_logs_by_time(self):  # Додано фільтр за конкретним часом
+    async def test_filter_pageviews_by_time(self):  # Фільтрація за часом
         time_filter = datetime.now(timezone.utc).isoformat()
         status, data = await self.request(
             f"{self.url}?time={time_filter}",
@@ -102,27 +101,7 @@ class TestCreateLog(E2ETestCase):
 
         assert status == 200, f"Expected 200 OK, got {status}. Response: {data}"
 
-        for log in data:
-            assert log["time"] == time_filter, (
-                f"Log time {log['time']} does not match the filter time {time_filter}"
+        for pageview in data:
+            assert pageview["time"] == time_filter, (
+                f"Pageview time {pageview['time']} doesn't match filter {time_filter}"
             )
-
-    async def no_test_create_log_invalid_data(self):
-        status, data = await self.request(
-            self.url,
-            "POST",
-            data={
-                "invalid_field_1": "invalid_value_1",
-                "invalid_field_2": "invalid_value_2",
-            },
-        )
-        
-        assert status == 400, (
-            f"Expected 400 Bad Request, got {status}. "
-            f"Response: {data}"
-        )
-        
-        assert any(key in data for key in ["error", "errors"]), (
-            "Error message not found in response. "
-            f"Expected 'error' or 'errors' field. Full response: {data}"
-        )

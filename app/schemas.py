@@ -32,3 +32,5 @@ class LogCreate(Schema):
     data = fields.Dict()
     stack = fields.List(fields.Dict())
     serviceContext = fields.Nested(ServiceContext)
+
+

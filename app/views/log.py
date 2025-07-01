@@ -4,6 +4,9 @@ from aiohttp import web
 from app import schemas
 from marshmallow import ValidationError
 
+async def LogCollectionOptions(request):
+    return web.Response(status=204)
+
 async def post(self):
     try:
         raw_data = await self.request.json()
@@ -13,21 +16,30 @@ async def post(self):
     except ValidationError as e:
         return web.json_response({"error": e.messages}, status=400)
 
+# class LogDetail(RetrieveView):
+#     # def get_model(self):
+#     #     return models.Offer
+
+#     def get_schema(self):
+#         return schemas.LogDetail
+
+#     async def before_get(self):
+#         self.where = "t0.status={published} and entity_id!=''"
+
+#     async def get_data(self, objects):
+#         data = await super().get_data(objects)
+#         data = self.schema().dump(obj=data, many=True)
+
+#         return data
 class LogDetail(RetrieveView):
-    # def get_model(self):
-    #     return models.Offer
-
-    def get_schema(self):
-        return schemas.LogDetail
-
-    async def before_get(self):
-        self.where = "t0.status={published} and entity_id!=''"
-
-    async def get_data(self, objects):
-        data = await super().get_data(objects)
-        data = self.schema().dump(obj=data, many=True)
-
-        return data
+    def __init__(self, request):
+        super().__init__(request)
+        self.obj = None  # Ініціалізувати obj
+        
+    async def _get(self):
+        # Логіка отримання об'єкту
+        self.obj = await storage.get_log(...)
+        return self.obj
 
 
 class LogCreate(CreateView):
