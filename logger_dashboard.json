@@ -1,7 +1,7 @@
 {
   "dashboard": {
     "id": null,
-    "title": "Factum Logger Dashboard",
+    "title": "Analytics Logger Dashboard",
     "timezone": "browser",
     "schemaVersion": 38,
     "version": 1,
@@ -9,11 +9,17 @@
     "panels": [
       {
         "type": "graph",
-        "title": "Errors Over Time",
+        "title": "Logs Over Time",
         "targets": [
           {
-            "expr": "count_over_time({level=\"error\"}[5m])",
-            "refId": "A"
+            "expr": "count_over_time({service=\"analytics-api\"}[5m])",
+            "refId": "A",
+            "legendFormat": "All Logs"
+          },
+          {
+            "expr": "count_over_time({service=\"analytics-api\", component=\"test-logs\"}[5m])",
+            "refId": "B",
+            "legendFormat": "Test Logs"
           }
         ],
         "gridPos": {
@@ -25,11 +31,11 @@
       },
       {
         "type": "table",
-        "title": "Recent Errors",
+        "title": "Recent Logs",
         "targets": [
           {
-            "expr": "{level=\"error\"} | json | line_format \"{{.message}}\"",
-            "refId": "B"
+            "expr": "{service=\"analytics-api\"} | json | line_format \"{{.component}}: {{.message}}\"",
+            "refId": "C"
           }
         ],
         "gridPos": {
@@ -41,11 +47,11 @@
       },
       {
         "type": "stat",
-        "title": "Top Services",
+        "title": "Top Components",
         "targets": [
           {
-            "expr": "topk(5, count_over_time({level=\"error\"}[1h]) by (service))",
-            "refId": "C"
+            "expr": "topk(5, count_over_time({service=\"analytics-api\"}[1h]) by (component))",
+            "refId": "D"
           }
         ],
         "gridPos": {
@@ -57,11 +63,11 @@
       },
       {
         "type": "stat",
-        "title": "Top Components",
+        "title": "Logs by Service",
         "targets": [
           {
-            "expr": "topk(5, count_over_time({level=\"error\"}[1h]) by (component))",
-            "refId": "D"
+            "expr": "count_over_time({service=\"analytics-api\"}[1h])",
+            "refId": "E"
           }
         ],
         "gridPos": {
@@ -73,11 +79,11 @@
       },
       {
         "type": "logs",
-        "title": "Search by msg_id",
+        "title": "Search by ID",
         "targets": [
           {
-            "expr": "{msg_id=~\".+\"}",
-            "refId": "E"
+            "expr": "{id=~\".+\"} | json | line_format \"ID: {{.id}} | {{.message}}\"",
+            "refId": "F"
           }
         ],
         "gridPos": {
@@ -91,13 +97,6 @@
     "templating": {
       "list": [
         {
-          "name": "service",
-          "type": "query",
-          "datasource": "Loki",
-          "query": "label_values(service)",
-          "refresh": 1
-        },
-        {
           "name": "component",
           "type": "query",
           "datasource": "Loki",
@@ -105,10 +104,10 @@
           "refresh": 1
         },
         {
-          "name": "level",
+          "name": "id",
           "type": "query",
           "datasource": "Loki",
-          "query": "label_values(level)",
+          "query": "label_values(id)",
           "refresh": 1
         }
       ]
