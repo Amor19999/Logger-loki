@@ -88,3 +88,11 @@ class LokiStorage(object):
 
     async def delete(self, where: str, params: dict) -> int:
         raise LokiException('Not supported')
+
+
+    async def save_log(self, log_data: dict):
+        log_id = log_data["id"]
+        self.logs[log_id] = log_data  # Збереження логу
+
+    async def get_log(self, log_id: str):
+        return self.logs.get(log_id)  # Отримання логу за ID
