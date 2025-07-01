@@ -20,7 +20,7 @@ class TestCreateLog(E2ETestCase):
             data={
                 "time": current_time,
                 "message": "Task-14",
-                "component": "analytics-api",
+                "component": "test-logs",
                 "serviceContext": {
                     "httpRequest": {
                         "method": "POST",

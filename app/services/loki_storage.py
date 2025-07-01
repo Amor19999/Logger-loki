@@ -68,7 +68,6 @@ class LokiStorage(object):
             return False
 
     async def select(self, fields='*', where='', order='', limit='', offset=None, params=None, many=False):
-        # Заглушка: Loki не підтримує SQL-запити
         if self.log:
             self.log.debug('select is not supported for Loki', extra={"sql_type": "select"})
         return []
