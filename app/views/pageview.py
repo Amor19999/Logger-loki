@@ -43,6 +43,9 @@ class PageViewCreate(CreateView):
     async def perform_create(self, data):
         storage = self.request.app.db_pool
         return await storage.insert(data)
+
+    async def get_data(self, obj) -> dict:
+        return obj
     
 # class PageViewCreate(CreateView):
 #     def get_model(self):

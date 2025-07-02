@@ -2,7 +2,6 @@ from aiohttp_boilerplate.views.retrieve import RetrieveView
 from aiohttp_boilerplate.views.create import CreateView
 from aiohttp import web
 from app import schemas
-from marshmallow import ValidationError
 
 async def LogCollectionOptions(request):
     return web.Response(status=204)
