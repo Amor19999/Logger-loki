@@ -15,3 +15,4 @@ __all__ = [
     'LogCreate', 'LogDetail', 'LogCollectionOptions',
     'PageViewList', 'PageViewCreate'
 ]
+

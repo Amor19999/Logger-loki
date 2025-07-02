@@ -4,6 +4,7 @@ import json
 import aiohttp
 from datetime import datetime
 
+
 async def create_pool_fix(conf, loop):
     return LokiStorage(conf["database"], gcp_logger.GCPLogger("loki_storage"))
 
