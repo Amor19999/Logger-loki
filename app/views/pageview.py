@@ -3,9 +3,18 @@ from aiohttp_boilerplate.views.create import CreateView
 
 from app import schemas
 
+class PageViewModel:
+    data = {}
+
+    def __init__(self, *args, **kwargs):
+        pass
+
 class PageViewList(ListView):
+    async def perform_get_count(self, where, params):
+        return len(self.objects.data)
+
     async def perform_get(self, **kwargs):
-        storage = self.request.app['storage']
+        storage = self.request.app.db_pool
         
         # Обробка параметрів фільтрації
         filters = {}
@@ -16,12 +25,13 @@ class PageViewList(ListView):
                 except ValueError:
                     pass
             filters[key] = value
-        
+
         # Отримання даних
-        self.objects = await storage.filter_pageviews(**filters)
+        self.objects = PageViewModel()
+        self.objects.data = await storage.select(**filters)
 
     def get_model(self):
-        return lambda *args, **kwargs: None
+        return PageViewModel
 
 class PageViewCreate(CreateView):
     def get_model(self):
@@ -31,7 +41,7 @@ class PageViewCreate(CreateView):
         return schemas.PageViewCreate
 
     async def perform_create(self, data):
-        storage = self.request.app['storage']
+        storage = self.request.app.db_pool
         return await storage.insert(data)
     
 # class PageViewCreate(CreateView):
