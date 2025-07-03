@@ -64,10 +64,26 @@ class LokiStorage(object):
                     self.log.error('Loki error', f"Status: {response.status}, Error: {err}")
                 return False
 
-    async def select(self, fields='*', where='', order='', limit='', offset=None, params=None, many=False):
-        if self.log:
-            self.log.debug('select is not supported for Loki', extra={"sql_type": "select"})
-        return []
+    # async def select(self, fields='*', where='', order='', limit='', offset=None, params=None, many=False):
+    #     if self.log:
+    #         self.log.debug('select is not supported for Loki', extra={"sql_type": "select"})
+    #     return []
+
+    async def select(self, date_from=None, date_to=None, time=None, **kwargs):
+        result = []
+        for obj in self.logs.values():
+            t = obj.get("time")
+            if isinstance(t, str):
+                t = datetime.fromisoformat(t)
+            if date_from and t < datetime.fromisoformat(date_from):
+                continue
+            if date_to and t > datetime.fromisoformat(date_to):
+                continue
+            if time and t != datetime.fromisoformat(time):
+                continue
+            result.append(obj)
+        return result
+
 
     async def insert(self, data: dict) -> dict:
         insert_id = str(uuid.uuid4())
