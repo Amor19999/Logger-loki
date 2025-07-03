@@ -1,5 +1,6 @@
 from marshmallow import Schema, fields, validate
 
+
 class PageViewList(Schema):
     id = fields.Str()
 

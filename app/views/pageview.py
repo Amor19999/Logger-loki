@@ -1,5 +1,6 @@
 from aiohttp_boilerplate.views.list import ListView
 from aiohttp_boilerplate.views.create import CreateView
+from aiohttp_boilerplate.views.retrieve import RetrieveView
 
 from app import schemas
 
@@ -9,6 +10,13 @@ class PageViewModel:
     def __init__(self, *args, **kwargs):
         pass
 
+class PageViewDetail(RetrieveView):
+    async def _get(self):
+        storage = self.request.app.db_pool
+        pageview_id = self.request.match_info.get('id')
+        obj = await storage.get_log(pageview_id)
+        return obj
+    
 class PageViewList(ListView):
     async def perform_get_count(self, where, params):
         return len(self.objects.data)
