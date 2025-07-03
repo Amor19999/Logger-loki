@@ -65,7 +65,10 @@ class TestPageView(E2ETestCase):  # Змінено назву класу
             "GET"
         )
 
+        # assert status == 200, f"Expected 200 OK, got {status}. Response: {data}"
         assert status == 200, f"Expected 200 OK, got {status}. Response: {data}"
+        assert len(data) == 22, print(len(data))
+
 
         for pageview in data:
             assert date_from <= pageview["time"] <= date_to, (

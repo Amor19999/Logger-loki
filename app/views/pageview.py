@@ -24,6 +24,8 @@ class PageViewList(ListView):
     async def perform_get(self, **kwargs):
         # storage = self.request.app.db_pool
         storage = self.request.app.db_pool
+        pageview_id = self.request.match_info.get('id')
+        obj = await storage.get_log(pageview_id)
         self.objects = PageViewModel()
         # self.objects.data = await storage.select(**filters)
         
