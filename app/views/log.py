@@ -40,7 +40,7 @@ class LogDetail(RetrieveView):
     #     self.obj = await storage.get_log(...)
     #     return self.obj
     async def _get(self):
-        storage = self.request.app['storage']
+        storage = self.request.app.db_pool
         log_id = self.request.match_info.get('id')
         self.obj = await storage.get_log(log_id)
         return self.obj
@@ -73,8 +73,8 @@ class LogCreate(CreateView):
         return obj
 
     async def perform_create(self, data):
-        storage = self.request.app['storage']
-        return await storage.insert(data)
+        # storage = self.request.app['storage']
+        return data
 # class LogCreate(CreateView):
 #     # def get_model(self):
 #     #     return models.Offer

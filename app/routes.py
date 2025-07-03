@@ -4,15 +4,16 @@ from aiohttp import web
 
 async def get_filtered_logs(request):
     # Отримуємо сховище з app
-    storage = request.app['storage']
+    # storage = request.app['storage']
+    storage = self.request.app.db_pool
     # storage = self.request.app['storage']
 
 
-    # Параметри фільтрації
-    params = request.query
-    date_from = params.get('date_from')
-    date_to = params.get('date_to')
-    time_filter = params.get('time')
+    # # Параметри фільтрації
+    # params = request.query
+    # date_from = params.get('date_from')
+    # date_to = params.get('date_to')
+    # time_filter = params.get('time')
     
     # Фільтрація даних
     filtered_data = await storage.filter_logs(

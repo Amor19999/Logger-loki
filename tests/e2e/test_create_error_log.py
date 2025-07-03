@@ -37,10 +37,8 @@ class TestCreateLog(E2ETestCase):
             },
         )
 
-        assert status == 201, (
-            f"Expected 201 Created, got {status}. "
-            f"Response: {data}"
-        )
+        assert status == 201, print(data)
+
         
         assert "id" in data, (
             f"ID field missing in response. "

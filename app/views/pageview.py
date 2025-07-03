@@ -14,7 +14,10 @@ class PageViewList(ListView):
         return len(self.objects.data)
 
     async def perform_get(self, **kwargs):
+        # storage = self.request.app.db_pool
         storage = self.request.app.db_pool
+        self.objects = PageViewModel()
+        # self.objects.data = await storage.select(**filters)
         
         # Обробка параметрів фільтрації
         filters = {}
@@ -41,11 +44,19 @@ class PageViewCreate(CreateView):
         return schemas.PageViewCreate
 
     async def perform_create(self, data):
-        storage = self.request.app.db_pool
-        return await storage.insert(data)
+            storage = self.request.app.db_pool
+            print('==========done===========')
+            res = await storage.insert(data)
+            print(" after insert ", res)
+            return res
 
     async def get_data(self, obj) -> dict:
-        return obj
+            print("get data result")
+            print(obj)
+            return obj
+
+    # async def get_data(self, obj) -> dict:
+    #     return obj
     
 # class PageViewCreate(CreateView):
 #     def get_model(self):

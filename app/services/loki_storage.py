@@ -19,6 +19,7 @@ class LokiStorage(object):
     def __init__(self, url, log=None):
         self.url = url
         self.log = log
+        self.logs = {}
         if self.log:
             self.log.debug(f"Initialized LokiStorage with URL: {url}")
 
@@ -81,8 +82,12 @@ class LokiStorage(object):
             self.log.debug(f"Inserting data to Loki: {json.dumps(data_with_id, indent=2, default=self._json_serializer)}")
 
         if await self._send_to_loki(data_with_id):
+            self.logs[insert_id] = data_with_id  # Зберігаємо у кеш
             return {"id": insert_id}
+            # return {"id": insert_id}
         raise LokiException("Failed to insert data to Loki")
+    
+
 
     async def update(self, where: str, params: dict, data: dict) -> int:
         raise LokiException('Not supported')
