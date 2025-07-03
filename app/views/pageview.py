@@ -39,13 +39,11 @@ class PageViewList(ListView):
     async def get_data(self, objects):
         return objects.data
 
-    # async def get_data(self, objects):
-    #     return objects  # objects — це список PageView
+    async def perform_get_count(self, where, params):
+        return len(self.objects.data)
 
     def get_model(self):
         return PageViewModel
-
-
 
 
 # class PageViewList(ListView):

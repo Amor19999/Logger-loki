@@ -69,20 +69,40 @@ class LokiStorage(object):
     #         self.log.debug('select is not supported for Loki', extra={"sql_type": "select"})
     #     return []
 
+
     async def select(self, date_from=None, date_to=None, time=None, **kwargs):
-        result = []
-        for obj in self.logs.values():
-            t = obj.get("time")
-            if isinstance(t, str):
-                t = datetime.fromisoformat(t)
-            if date_from and t < datetime.fromisoformat(date_from):
-                continue
-            if date_to and t > datetime.fromisoformat(date_to):
-                continue
-            if time and t != datetime.fromisoformat(time):
-                continue
-            result.append(obj)
-        return result
+        query = '{service="analytics-api"}'
+        params = {
+            "query": query,
+            "limit": 1000,
+        }
+        if date_from:
+            params["start"] = int(datetime.fromisoformat(date_from).timestamp() * 1e9)
+        if date_to:
+            params["end"] = int(datetime.fromisoformat(date_to).timestamp() * 1e9)
+
+        url = self.url.replace("/loki/api/v1/push", "/loki/api/v1/query_range")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    return self.parse_loki_result(data['data']['result'])
+                else:
+                    return []
+
+    @staticmethod
+    def parse_loki_result(result):
+        logs = []
+        for stream in result:
+            for ts, line in stream["values"]:
+                try:
+                    log = json.loads(line)
+                except Exception:
+                    log = {"raw": line}
+                log["timestamp"] = ts
+                logs.append(log)
+        return logs
+
 
 
     async def insert(self, data: dict) -> dict:
