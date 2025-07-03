@@ -3,11 +3,8 @@ from marshmallow import Schema, fields, validate
 class PageViewList(Schema):
     id = fields.Str()
 
-
 class LogDetail(Schema):
     id = fields.Str()
-
-
 
 class ServiceContext(Schema):
     # ToDo

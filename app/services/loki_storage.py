@@ -50,24 +50,19 @@ class LokiStorage(object):
             "X-Scope-OrgID": "fake"
         }
 
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    self.url,
-                    json=payload,
-                    headers=headers,
-                    timeout=aiohttp.ClientTimeout(total=10)
-                ) as response:
-                    if response.status in (200, 201, 204):
-                        return True
-                    err = await response.text()
-                    if self.log:
-                        self.log.error('Loki error', f"Status: {response.status}, Error: {err}")
-                    return False
-        except Exception as e:
-            if self.log:
-                self.log.error('Loki connection failed', str(e))
-            return False
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                self.url,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=10)
+            ) as response:
+                if response.status in (200, 201, 204):
+                    return True
+                err = await response.text()
+                if self.log:
+                    self.log.error('Loki error', f"Status: {response.status}, Error: {err}")
+                return False
 
     async def select(self, fields='*', where='', order='', limit='', offset=None, params=None, many=False):
         if self.log:
@@ -81,12 +76,12 @@ class LokiStorage(object):
         if self.log:
             self.log.debug(f"Inserting data to Loki: {json.dumps(data_with_id, indent=2, default=self._json_serializer)}")
 
-        if await self._send_to_loki(data_with_id):
+        res = await self._send_to_loki(data_with_id)
+        if res:
             self.logs[insert_id] = data_with_id  # Зберігаємо у кеш
             return {"id": insert_id}
             # return {"id": insert_id}
         raise LokiException("Failed to insert data to Loki")
-    
 
 
     async def update(self, where: str, params: dict, data: dict) -> int:
@@ -94,7 +89,6 @@ class LokiStorage(object):
 
     async def delete(self, where: str, params: dict) -> int:
         raise LokiException('Not supported')
-
 
     async def save_log(self, log_data: dict):
         log_id = log_data["id"]

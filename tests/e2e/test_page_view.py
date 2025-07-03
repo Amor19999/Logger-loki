@@ -2,7 +2,7 @@ from aiohttp_boilerplate.test_utils import E2ETestCase
 from datetime import datetime, timezone, timedelta
 import uuid
 
-class TestCreatePageView(E2ETestCase):  # Змінено назву класу
+class TestPageView(E2ETestCase):  # Змінено назву класу
     url = "/v1.0/public/pageview"  # Оновлено URL для PageView
     url_get = "/v1.0/public/pageview/{id}"
 
@@ -12,7 +12,7 @@ class TestCreatePageView(E2ETestCase):  # Змінено назву класу
         status, data = await self.request(self.url, "OPTIONS")
         assert status == 200
 
-    async def test_create_page_view(self):  # Змінено назву методу
+    async def test_create(self):  # Змінено назву методу
         current_time = datetime.now(timezone.utc).isoformat()
         status, data = await self.request(
             self.url,
@@ -37,42 +37,24 @@ class TestCreatePageView(E2ETestCase):  # Змінено назву класу
         )
 
         assert status == 201, print(data)
-
-        
-        assert "id" in data, (
-            f"ID field missing in response. "
-            f"Full response: {data}"
-        )
+        assert "id" in data, print(data)
 
         try:
             uuid.UUID(data["id"])
         except ValueError:
             assert False, (
-                f"Returned ID is not a valid UUID: '{data['id']}'. "
-                f"Full response: {data}"
+                f"Returned ID is not a valid UUID: '{data['id']}'"
             )
 
         status_get, data_get = await self.request(
             self.url_get.format(id=data["id"]),
             "GET",
         )
-        
-        if not isinstance(data_get, dict):
-            print(
-                f"⚠️ GET response is not JSON (type={type(data_get)}). "
-                f"Status: {status_get}, Response: {data_get}"
-            )
-            return  
 
-        assert "httpRequest" in data_get, (  # Перевірка наявності HTTP-запиту
-            f"'httpRequest' field missing in GET response. "
-            f"Full response: {data_get}"
-        )
-        
-        assert data_get["httpRequest"]["url"] == "/index.html", (  # Перевірка конкретного поля
-            f"Expected URL '/index.html', got '{data_get['httpRequest']['url']}'. "
-            f"Full response: {data_get}"
-        )
+        assert status_get == 200, print(data_get)
+        assert data_get["id"] == data["id"], print(data_get)
+        # Перевірка конкретного поля
+        assert data_get["httpRequest"]["url"] == "/index.html", print(data_get)
 
     async def test_filter_pageviews_by_date_range(self):  # Фільтрація за датою
         date_from = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()

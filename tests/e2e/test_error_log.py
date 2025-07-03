@@ -2,7 +2,7 @@ from aiohttp_boilerplate.test_utils import E2ETestCase
 from datetime import datetime, timezone
 import uuid
 
-class TestCreateLog(E2ETestCase):
+class TestLogCreate(E2ETestCase):
     url = "/v1.0/public/log"
     url_get = "/v1.0/public/log/{id}"
 

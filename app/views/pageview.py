@@ -45,46 +45,9 @@ class PageViewCreate(CreateView):
 
     async def perform_create(self, data):
             storage = self.request.app.db_pool
-            print('==========done===========')
-            res = await storage.insert(data)
-            print(" after insert ", res)
-            return res
+            self.obj = await storage.insert(data)
+            return self.obj
 
     async def get_data(self, obj) -> dict:
-            print("get data result")
-            print(obj)
-            return obj
-
-    # async def get_data(self, obj) -> dict:
-    #     return obj
-    
-# class PageViewCreate(CreateView):
-#     def get_model(self):
-#         return None 
-    
-#     def get_schema(self):
-#         return schemas.LogDetail
-
-#     async def before_get(self):
-#         self.where = "t0.status={published} and entity_id!=''"
-
-#     async def get_data(self, objects):
-#         data = await super().get_data(objects)
-#         data = self.schema().dump(obj=data, many=True)
-
-#         return data
-
-#     async def perform_get(self, fields="", **kwargs):
-#             self.log.debug("Perform get request" f"fields={fields}, kwargs: {kwargs}")
-#             print(fields, kwargs)
-#             raw_data = await self.objects.sql.select(
-#                 fields=fields, many=True, **kwargs
-#             )
-#             self.objects = raw_data
-
-#     def get_schema(self):
-#         return schemas.PageViewCreate
-
-#     async def perform_create(self, data):
-#         storage = self.request.app['storage']
-#         return await storage.create_pageview(data)
+        ''' Return id of the object '''
+        return {'id': obj["id"]}

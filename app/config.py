@@ -4,7 +4,6 @@ import environ
 environ.Env.read_env()
 env = environ.Env()
 
-
 config = {
     "domain": env.str("DOMAIN"),
     "loki_url": env.str("LOKI_URL"),
