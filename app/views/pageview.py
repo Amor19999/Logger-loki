@@ -5,12 +5,6 @@ from aiohttp_boilerplate.views.retrieve import RetrieveView
 
 from app import schemas
 
-# class PageViewModel:
-#     data = {}
-
-#     def __init__(self, *args, **kwargs):
-#         pass
-
 class PageViewDetail(RetrieveView):
     async def _get(self):
         storage = self.request.app.db_pool
@@ -45,49 +39,6 @@ class PageViewList(ListView):
     def get_model(self):
         return PageViewModel
 
-
-# class PageViewList(ListView):
-#     async def perform_get(self, **kwargs):
-#         storage = self.request.app.db_pool
-#         filters = {}
-#         for key, value in kwargs.items():
-#             if key.endswith(("_from", "_to")) and value:
-#                 try:
-#                     value = datetime.fromisoformat(value)
-#                 except ValueError:
-#                     pass
-#             filters[key] = value
-#         self.objects = await storage.select(**filters)
-
-#     async def get_data(self, objects):
-#         return objects.data
-
-#     def get_model(self):
-#         return PageViewModel
-
-
-    # async def perform_get(self, **kwargs):
-    #     # storage = self.request.app.db_pool
-    #     storage = self.request.app.db_pool
-    #     pageview_id = self.request.match_info.get('id')
-    #     obj = await storage.get_log(pageview_id)
-    #     self.objects = PageViewModel()
-    #     # self.objects.data = await storage.select(**filters)
-        
-    #     # Обробка параметрів фільтрації
-    #     filters = {}
-    #     for key, value in kwargs.items():
-    #         if key.endswith(("_from", "_to")) and value:
-    #             try:
-    #                 value = datetime.fromisoformat(value)
-    #             except ValueError:
-    #                 pass
-    #         filters[key] = value
-
-    #     # Отримання даних
-    #     self.objects = PageViewModel()
-    #     self.objects.data = await storage.select(**filters)
-
 class PageViewCreate(CreateView):
     def get_model(self):
         return None
@@ -103,3 +54,43 @@ class PageViewCreate(CreateView):
     async def get_data(self, obj) -> dict:
         ''' Return id of the object '''
         return {'id': obj["id"]}
+
+####################  Add 04.07  #################################
+class PageViewStats(ListView):
+    def get_schema(self):
+        return schemas.PageViewList  # або окрема схема для відповіді
+
+    async def perform_get(self, **kwargs):
+        storage = self.request.app.db_pool
+        # отримуємо параметри
+        event_type = self.request.query.get("type")
+        date_from_str = self.request.query.get("date_from")
+        date_to_str = self.request.query.get("date_to")
+        # перетворюємо у datetime
+        date_from = datetime.fromisoformat(date_from_str) if date_from_str else None
+        date_to = datetime.fromisoformat(date_to_str) if date_to_str else None
+        filters = {}
+        if event_type:
+            filters["type"] = event_type
+        if date_from:
+            filters["timestamp_from"] = date_from
+        if date_to:
+            filters["timestamp_to"] = date_to
+        self.objects = PageViewModel()
+        self.objects.data = await storage.select(**filters)
+
+    async def get_data(self, objects):
+        # групуємо по днях
+        stats = {}
+        for obj in objects.data:
+            dt = obj["timestamp"]
+            if isinstance(dt, str):
+                dt_obj = datetime.fromisoformat(dt)
+            else:
+                dt_obj = dt
+            day_str = dt_obj.date().isoformat()
+            stats[day_str] = stats.get(day_str, 0) + 1
+        return stats
+
+    def get_model(self):
+        return PageViewModel
