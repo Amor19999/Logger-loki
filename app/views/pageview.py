@@ -55,18 +55,16 @@ class PageViewCreate(CreateView):
         ''' Return id of the object '''
         return {'id': obj["id"]}
 
-####################  Add 04.07  #################################
+####################  Add 04.07  
 class PageViewStats(ListView):
     def get_schema(self):
-        return schemas.PageViewList  # або окрема схема для відповіді
+        return schemas.PageViewList  
 
     async def perform_get(self, **kwargs):
         storage = self.request.app.db_pool
-        # отримуємо параметри
         event_type = self.request.query.get("type")
         date_from_str = self.request.query.get("date_from")
         date_to_str = self.request.query.get("date_to")
-        # перетворюємо у datetime
         date_from = datetime.fromisoformat(date_from_str) if date_from_str else None
         date_to = datetime.fromisoformat(date_to_str) if date_to_str else None
         filters = {}
@@ -80,7 +78,8 @@ class PageViewStats(ListView):
         self.objects.data = await storage.select(**filters)
 
     async def get_data(self, objects):
-        # групуємо по днях
+        print(object)
+        print('=================')
         stats = {}
         for obj in objects.data:
             dt = obj["timestamp"]

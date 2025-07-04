@@ -14,3 +14,4 @@ def setup_routes(app):
     app.router.add_route('GET', '/v1.0/public/pageview', PageViewList)
 
     app.router.add_route('GET', '/v1.0/internal/pageview_stats', PageViewStats) #add 04.07 for filter date
+
