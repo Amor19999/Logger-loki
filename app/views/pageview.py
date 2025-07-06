@@ -40,14 +40,15 @@ class PageViewList(ListView):
         for obj in objects:
             dt = obj.get("timestamp")
             if not dt:
-                continue  
+                continue
             if isinstance(dt, str):
                 dt_obj = datetime.fromisoformat(dt)
             else:
                 dt_obj = dt
-            day_str = dt_obj.self.objects.date().isoformat()
+            day_str = dt_obj.date().isoformat()
             stats[day_str] = stats.get(day_str, 0) + 1
         return stats
+
         # objects — це вже список словників
         # Наприклад, повертаємо список як є:
 
@@ -103,19 +104,19 @@ class PageViewStats(ListView):
         self.objects = PageViewModel()
         self.objects.data = await storage.select(**filters)
 
-    async def get_data(self, objects):
-        print(object)
-        print('=================')
-        stats = {}
-        for obj in objects.data:
-            dt = obj["timestamp"]
-            if isinstance(dt, str):
-                dt_obj = datetime.fromisoformat(dt)
-            else:
-                dt_obj = dt
-            day_str = dt_obj.date().isoformat()
-            stats[day_str] = stats.get(day_str, 0) + 1
-        return stats
+    # async def get_data(self, objects):
+    #     print(object)
+    #     print('=================')
+    #     stats = {}
+    #     for obj in objects:
+    #         dt = obj["timestamp"]
+    #         if isinstance(dt, str):
+    #             dt_obj = datetime.fromisoformat(dt)
+    #         else:
+    #             dt_obj = dt
+    #         day_str = dt_obj.date().isoformat()
+    #         stats[day_str] = stats.get(day_str, 0) + 1
+    #     return stats
 
-    def get_model(self):
-        return PageViewModel
+    # def get_model(self):
+    #     return PageViewModel
