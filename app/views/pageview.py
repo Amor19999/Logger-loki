@@ -2,7 +2,6 @@ from datetime import datetime
 from aiohttp_boilerplate.views.list import ListView
 from aiohttp_boilerplate.views.create import CreateView
 from aiohttp_boilerplate.views.retrieve import RetrieveView
-from collections import defaultdict
 
 from app import schemas
 
@@ -21,64 +20,50 @@ class PageViewList(ListView):
     async def perform_get(self, **kwargs):
         storage = self.request.app.db_pool
         filters = {}
-        # ... мапінг фільтрів ...
+        # ToDo
+        # Тобі скоріш за все тут треба буде зробити зміну назви полей
+        # тому що в loki фільри скоріш за все називаються по іншому
+        # тіпу того що ти робиш у PageViewStats
+        print(kwargs)
+        for key, value in kwargs.items():
+            if key.endswith(("_from", "_to")) and value:
+                try:
+                    value = datetime.fromisoformat(value)
+                except ValueError:
+                    pass
+            filters[key] = value
         self.objects = PageViewModel()
         self.objects.data = await storage.select(**filters)
 
     async def get_data(self, objects):
-        from collections import defaultdict
-        counts = defaultdict(int)
-        for log in objects.data:
-            time_str = log.get("time")
-            if not time_str:
-                continue
-            if isinstance(time_str, datetime):
-                date_str = time_str.date().isoformat()
+        stats = {}
+        for obj in objects:
+            dt = obj.get("timestamp")
+            if not dt:
+                continue  
+            if isinstance(dt, str):
+                dt_obj = datetime.fromisoformat(dt)
             else:
-                date_str = str(time_str)[:10]
-            counts[date_str] += 1
-        return dict(counts)
+                dt_obj = dt
+            day_str = dt_obj.date().isoformat()
+            stats[day_str] = stats.get(day_str, 0) + 1
+        return stats
+        # objects — це вже список словників
+        # Наприклад, повертаємо список як є:
+
+        # ToDo
+        # тут вже я тобі писав що в тебе немає objects.data
+        # є self.object.data
+        # або є просто objects без data
+        # ========
+        # ToDo
+        # тут тобі потрібно робити зміну данніх до формату дата: кількість
 
     async def perform_get_count(self, where, params):
         return len(self.objects.data)
 
     def get_model(self):
         return PageViewModel
-
-# class PageViewList(ListView):
-#     async def perform_get(self, **kwargs):
-#         storage = self.request.app.db_pool
-#         filters = {}
-#         # ToDo
-#         # Тобі скоріш за все тут треба буде зробити зміну назви полей
-#         # тому що в loki фільри скоріш за все називаються по іншому
-#         # тіпу того що ти робиш у PageViewStats
-#         print(kwargs)
-#         for key, value in kwargs.items():
-#             if key.endswith(("_from", "_to")) and value:
-#                 try:
-#                     value = datetime.fromisoformat(value)
-#                 except ValueError:
-#                     pass
-#             filters[key] = value
-#         self.objects = PageViewModel()
-#         self.objects.data = await storage.select(**filters)
-
-#     async def get_data(self, objects):
-#         # ToDo
-#         # тут вже я тобі писав що в тебе немає objects.data
-#         # є self.object.data
-#         # або є просто objects без data
-#         # ========
-#         # ToDo
-#         # тут тобі потрібно робити зміну данніх до формату дата: кількість
-#         return objects.data
-
-#     async def perform_get_count(self, where, params):
-#         return len(self.objects.data)
-
-#     def get_model(self):
-#         return PageViewModel
 
 class PageViewCreate(CreateView):
     def get_model(self):
@@ -118,19 +103,19 @@ class PageViewStats(ListView):
         self.objects = PageViewModel()
         self.objects.data = await storage.select(**filters)
 
-    # async def get_data(self, objects):
-    #     print(object)
-    #     print('=================')
-    #     stats = {}
-    #     for obj in objects.data:
-    #         dt = obj["timestamp"]
-    #         if isinstance(dt, str):
-    #             dt_obj = datetime.fromisoformat(dt)
-    #         else:
-    #             dt_obj = dt
-    #         day_str = dt_obj.date().isoformat()
-    #         stats[day_str] = stats.get(day_str, 0) + 1
-    #     return stats
+    async def get_data(self, objects):
+        print(object)
+        print('=================')
+        stats = {}
+        for obj in objects.data:
+            dt = obj["timestamp"]
+            if isinstance(dt, str):
+                dt_obj = datetime.fromisoformat(dt)
+            else:
+                dt_obj = dt
+            day_str = dt_obj.date().isoformat()
+            stats[day_str] = stats.get(day_str, 0) + 1
+        return stats
 
-    # def get_model(self):
-    #     return PageViewModel
+    def get_model(self):
+        return PageViewModel
