@@ -45,7 +45,7 @@ class PageViewList(ListView):
                 dt_obj = datetime.fromisoformat(dt)
             else:
                 dt_obj = dt
-            day_str = dt_obj.date().isoformat()
+            day_str = dt_obj.self.objects.date().isoformat()
             stats[day_str] = stats.get(day_str, 0) + 1
         return stats
         # objects — це вже список словників
