@@ -1,6 +1,7 @@
 from aiohttp_boilerplate.test_utils import E2ETestCase
 from datetime import datetime, timezone
 import uuid
+import json
 
 class TestPageView(E2ETestCase):
     url = "/v1.0/public/pageview"
@@ -50,11 +51,8 @@ class TestPageView(E2ETestCase):
         # тобі треба взяти тот проміжок часу в який саме ти робив запити
         # на створення данніх
         # тобто тобі потрібно тут мати конкретні дати а не datetime.now
-        date_from = "XXX"
-        date_to = "XXX"
-
-        # та треба вказати тіп данних
-        type = "III"
+        date_from = "2025-06-30"
+        date_to = "2025-07-05"
 
         # Далі ти робиш одін запит на отрімання данних викорістовуючі дати от і до
         # тобі треба щоб в тебе був вірний роут для отримання данних
@@ -63,12 +61,17 @@ class TestPageView(E2ETestCase):
             "GET",
         )
 
-        assert status != 200, print(data)
+        assert status == 200, print(data)
 
         # також тобі треба стврити зминну з вірними данніми
-        correct_data = "YYY"
-        assert data != correct_data, print(data)
-            
+        with open("tests/e2e/loki_correct_data.json", "r", encoding="utf-8") as f:
+            correct_data = json.load(f)
+            assert data == correct_data, print(data)
+
+        # Задача на потім, додати тіп данних
+        # та треба вказати тіп данних
+        # type = "III"
+
     async def test_pageview_stats_filter_by_type(self):
         base_date = datetime.now(timezone.utc)
         ds = base_date.date().isoformat()
