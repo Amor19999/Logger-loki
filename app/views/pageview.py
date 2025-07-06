@@ -37,6 +37,8 @@ class PageViewList(ListView):
 
     async def get_data(self, objects):
         stats = {}
+        print(object)
+        print('=================')
         for obj in objects:
             dt = obj.get("timestamp")
             if not dt:
