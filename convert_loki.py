@@ -11,7 +11,7 @@ for stream in loki_data.get("data", {}).get("result", []):
             msg = json.loads(raw_msg)
         except Exception:
             msg = {"raw": raw_msg}
-        msg["_timestamp"] = int(ts)  
+        msg["_timestamp"] = int(ts)
         logs.append(msg)
 
 stats = defaultdict(int)

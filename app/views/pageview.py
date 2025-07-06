@@ -20,6 +20,11 @@ class PageViewList(ListView):
     async def perform_get(self, **kwargs):
         storage = self.request.app.db_pool
         filters = {}
+        # ToDo
+        # Тобі скоріш за все тут треба буде зробити зміну назви полей
+        # тому що в loki фільри скоріш за все називаються по іншому
+        # тіпу того що ти робиш у PageViewStats
+        print(kwargs)
         for key, value in kwargs.items():
             if key.endswith(("_from", "_to")) and value:
                 try:
@@ -31,6 +36,13 @@ class PageViewList(ListView):
         self.objects.data = await storage.select(**filters)
 
     async def get_data(self, objects):
+        # ToDo
+        # тут вже я тобі писав що в тебе немає objects.data
+        # є self.object.data
+        # або є просто objects без data
+        # ========
+        # ToDo
+        # тут тобі потрібно робити зміну данніх до формату дата: кількість
         return objects.data
 
     async def perform_get_count(self, where, params):

@@ -1,5 +1,5 @@
 from aiohttp_boilerplate.test_utils import E2ETestCase
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 import uuid
 
 class TestPageView(E2ETestCase):
