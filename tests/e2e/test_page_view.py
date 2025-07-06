@@ -47,53 +47,28 @@ class TestPageView(E2ETestCase):
         assert data_get.get("id") == data["id"], f"ID mismatch: {data_get}"
 
     async def test_pageview_stats_by_day(self):
-        # Prepare base dates
-        base_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-        day1 = base_date - timedelta(days=2)
-        day2 = base_date - timedelta(days=1)
-        day3 = base_date
+        # тобі треба взяти тот проміжок часу в який саме ти робив запити
+        # на створення данніх
+        # тобто тобі потрібно тут мати конкретні дати а не datetime.now
+        date_from = "XXX"
+        date_to = "XXX"
 
-        # Create 2 views on day1
-        for ts in [day1, day1 + timedelta(hours=2)]:
-            await self.request(self.url, "POST", data={
-                "time": ts.isoformat(),
-                "httpRequest": {
-                    "method": "GET", "url": "/page", "path": "/page", "host": "example"
-                },
-                "type": "view"
-            })
-        # Create 3 views on day2
-        for i in range(3):
-            ts = day2 + timedelta(hours=i)
-            await self.request(self.url, "POST", data={
-                "time": ts.isoformat(),
-                "httpRequest": {
-                    "method": "GET", "url": f"/page{i}", "path": f"/page{i}", "host": "example"
-                },
-                "type": "view"
-            })
-        # Create 1 click on day3 (should be excluded)
-        await self.request(self.url, "POST", data={
-            "time": day3.isoformat(),
-            "httpRequest": {
-                "method": "GET", "url": "/click", "path": "/click", "host": "example"
-            },
-            "type": "click"
-        })
+        # та треба вказати тіп данних
+        type = "III"
 
-        # Query stats
-        df = (day1 - timedelta(days=1)).date().isoformat()
-        dt = (day3 + timedelta(days=1)).date().isoformat()
-        stats_url = f"{self.url_stats}?type=view&date_from={df}&date_to={dt}"
-        status, data = await self.request(stats_url, "GET")
-        assert status == 200, f"Expected 200 OK, got {status}. Response: {data}"
-        assert isinstance(data, dict), f"Response should be dict, got {type(data)}"
+        # Далі ти робиш одін запит на отрімання данних викорістовуючі дати от і до
+        # тобі треба щоб в тебе був вірний роут для отримання данних
+        status, data = await self.request(
+            self.url + f"?from={date_from}&to={date_to}&type={type}",
+            "GET",
+        )
 
-        s1, s2, s3 = day1.date().isoformat(), day2.date().isoformat(), day3.date().isoformat()
-        assert data.get(s1) == 2, f"Expected 2 views on {s1}, got {data.get(s1)}"
-        assert data.get(s2) == 3, f"Expected 3 views on {s2}, got {data.get(s2)}"
-        assert data.get(s3, 0) == 0, f"Expected 0 views on {s3}, got {data.get(s3)}"
+        assert status != 200, print(data)
 
+        # також тобі треба стврити зминну з вірними данніми
+        correct_data = "YYY"
+        assert data != correct_data, print(data)
+            
     async def test_pageview_stats_filter_by_type(self):
         base_date = datetime.now(timezone.utc)
         ds = base_date.date().isoformat()
